@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Victoria Rose | مدیریت ویزیت</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#800080">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --plum:#800080;
+    --plum-deep:#5c005c;
+    --plum-soft:#f6ecf6;
+    --white:#ffffff;
+    --ink:#241224;
+    --line:#e7d9e7;
+    --gold:#b8862f;
+    --ok:#2e7d4f;
+    --warn:#b8862f;
+    --bad:#b23b3b;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Vazirmatn',sans-serif;
+    background:var(--plum-soft);
+    color:var(--ink);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--white);position:relative;box-shadow:0 0 40px rgba(128,0,128,0.08);}
+
+  /* ===== Screens ===== */
+  .screen{display:none;min-height:100vh;flex-direction:column;}
+  .screen.active{display:flex;}
+
+  /* ===== Login ===== */
+  #login-screen{
+    justify-content:center;
+    align-items:center;
+    background:linear-gradient(160deg,var(--plum) 0%,var(--plum-deep) 55%,#3a0038 100%);
+    padding:40px 28px;
+    position:relative;
+    overflow:hidden;
+  }
+  #login-screen::before{
+    content:"";
+    position:absolute;
+    inset:-40%;
+    background:radial-gradient(circle at 30% 20%, rgba(255,255,255,0.08), transparent 60%),
+               radial-gradient(circle at 80% 80%, rgba(255,255,255,0.05), transparent 55%);
+    pointer-events:none;
+  }
+  .login-card{
+    position:relative;
+    width:100%;
+    z-index:1;
+  }
+  .brand-mark{
+    width:104px;height:104px;
+    margin:0 auto 18px;
+    display:block;
+  }
+  .brand-mark img{width:100%;height:100%;object-fit:contain;}
+  .brand-title{
+    text-align:center;
+    color:#fff;
+    font-size:26px;
+    font-weight:700;
+    letter-spacing:1px;
+    margin-bottom:2px;
+    font-family:Georgia, 'Times New Roman', serif;
+  }
+  .brand-sub{
+    text-align:center;
+    color:rgba(255,255,255,0.65);
+    font-size:12.5px;
+    margin-bottom:38px;
+    font-weight:400;
+    letter-spacing:0.5px;
+  }
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;color:rgba(255,255,255,0.85);font-size:13px;margin-bottom:7px;font-weight:500;
+  }
+  .field input{
+    width:100%;
+    padding:14px 16px;
+    border-radius:10px;
+    border:1px solid rgba(255,255,255,0.25);
+    background:rgba(255,255,255,0.08);
+    color:#fff;
+    font-family:'Vazirmatn',sans-serif;
+    font-size:15px;
+    outline:none;
+    transition:.2s;
+  }
+  .field input::placeholder{color:rgba(255,255,255,0.4);}
+  .field input:focus{border-color:#fff;background:rgba(255,255,255,0.14);}
+  .btn-primary{
+    width:100%;
+    padding:15px;
+    border-radius:10px;
+    border:none;
+    background:#fff;
+    color:var(--plum-deep);
+    font-family:'Vazirmatn',sans-serif;
+    font-size:15.5px;
+    font-weight:700;
+    cursor:pointer;
+    margin-top:8px;
+    transition:.15s;
+  }
+  .btn-primary:active{transform:scale(0.98);}
+  .login-error{
+    color:#ffd9d9;background:rgba(178,59,59,0.35);border:1px solid rgba(255,120,120,0.4);
+    padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;text-align:center;
+  }
+  .server-url-toggle{
+    text-align:center;margin-top:22px;color:rgba(255,255,255,0.5);font-size:12px;cursor:pointer;text-decoration:underline;
+  }
+  #serverUrlBox{display:none;margin-top:12px;}
+
+  /* ===== Header (inner screens) ===== */
+  .topbar{
+    background:var(--plum);
+    color:#fff;
+    padding:18px 20px 16px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:10;
+  }
+  .topbar .left{display:flex;align-items:center;gap:10px;}
+  .topbar .mark{width:34px;height:34px;object-fit:contain;}
+  .topbar .title{font-size:17px;font-weight:700;}
+  .topbar .sub{font-size:11.5px;color:rgba(255,255,255,0.7);margin-top:2px;}
+  .icon-btn{
+    background:rgba(255,255,255,0.15);
+    border:none;color:#fff;width:36px;height:36px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;
+  }
+  .offline-badge{
+    display:none;
+    background:#b8862f;color:#fff;font-size:11px;text-align:center;
+    padding:6px;font-weight:600;letter-spacing:0.3px;
+  }
+  .offline-badge.show{display:block;}
+
+  /* ===== Home / nav ===== */
+  .content{padding:20px;padding-bottom:100px;flex:1;}
+  .greet{font-size:19px;font-weight:700;margin-bottom:2px;}
+  .greet-sub{color:#8a6f8a;font-size:13px;margin-bottom:22px;}
+
+  .kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:22px;}
+  .kpi-card{
+    background:var(--plum-soft);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:16px;
+  }
+  .kpi-card .num{font-size:24px;font-weight:800;color:var(--plum);}
+  .kpi-card .lbl{font-size:12px;color:#8a6f8a;margin-top:3px;}
+
+  .big-action{
+    display:flex;align-items:center;gap:14px;
+    background:linear-gradient(135deg,var(--plum),var(--plum-deep));
+    color:#fff;border-radius:16px;padding:18px 20px;margin-bottom:14px;
+    cursor:pointer;border:none;width:100%;font-family:'Vazirmatn',sans-serif;
+  }
+  .big-action .ic{font-size:26px;}
+  .big-action .txt{text-align:right;flex:1;}
+  .big-action .txt .t1{font-size:15.5px;font-weight:700;}
+  .big-action .txt .t2{font-size:12px;opacity:0.75;margin-top:2px;}
+
+  .section-title{font-size:14px;font-weight:700;color:var(--plum-deep);margin:26px 0 12px;display:flex;align-items:center;gap:8px;}
+  .section-title::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .visit-item{
+    border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .visit-item .place{font-weight:700;font-size:14px;}
+  .visit-item .meta{font-size:12px;color:#8a6f8a;margin-top:3px;}
+  .status-chip{font-size:11px;padding:4px 10px;border-radius:20px;font-weight:600;}
+  .status-ok{background:#e5f3ea;color:var(--ok);}
+  .status-bad{background:#fbe9e9;color:var(--bad);}
+  .status-pending{background:#faf1e0;color:var(--warn);}
+  .pending-sync{background:#eee;color:#888;}
+
+  .empty-state{text-align:center;padding:40px 20px;color:#a98fa9;font-size:13.5px;}
+
+  /* ===== Form ===== */
+  .form-group{margin-bottom:16px;}
+  .form-group label{display:block;font-size:13px;font-weight:600;color:var(--plum-deep);margin-bottom:7px;}
+  .form-group input, .form-group select, .form-group textarea{
+    width:100%;padding:12px 14px;border-radius:10px;border:1.5px solid var(--line);
+    font-family:'Vazirmatn',sans-serif;font-size:14.5px;background:#fff;color:var(--ink);outline:none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus{border-color:var(--plum);}
+  .form-group textarea{resize:vertical;min-height:70px;}
+  .pill-select{display:flex;gap:8px;}
+  .pill-opt{
+    flex:1;text-align:center;padding:11px 6px;border-radius:10px;border:1.5px solid var(--line);
+    font-size:13.5px;font-weight:600;cursor:pointer;color:#8a6f8a;
+  }
+  .pill-opt.active{background:var(--plum);border-color:var(--plum);color:#fff;}
+  .submit-bar{
+    position:sticky;bottom:0;background:#fff;padding:14px 20px;border-top:1px solid var(--line);
+  }
+  .submit-btn{
+    width:100%;padding:15px;border-radius:12px;border:none;background:var(--plum);color:#fff;
+    font-size:15.5px;font-weight:700;font-family:'Vazirmatn',sans-serif;cursor:pointer;
+  }
+  .submit-btn:active{transform:scale(0.98);}
+  .form-toast{
+    display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+    background:var(--ink);color:#fff;padding:12px 22px;border-radius:30px;font-size:13.5px;z-index:50;
+    box-shadow:0 6px 20px rgba(0,0,0,0.2);
+  }
+
+  /* ===== Bottom nav ===== */
+  .bottom-nav{
+    position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+    width:100%;max-width:480px;background:#fff;border-top:1px solid var(--line);
+    display:flex;padding:8px 10px calc(8px + env(safe-area-inset-bottom));z-index:20;
+  }
+  .nav-item{flex:1;text-align:center;padding:6px;cursor:pointer;color:#b39ab3;font-size:11px;}
+  .nav-item .ic{font-size:19px;display:block;margin-bottom:3px;}
+  .nav-item.active{color:var(--plum);}
+
+  /* ===== Dashboard ===== */
+  .tab-row{display:flex;gap:8px;margin-bottom:18px;}
+  .tab-btn{flex:1;padding:10px;text-align:center;border-radius:10px;border:1.5px solid var(--line);font-size:13px;font-weight:600;color:#8a6f8a;cursor:pointer;}
+  .tab-btn.active{background:var(--plum);color:#fff;border-color:var(--plum);}
+  .bar-row{margin-bottom:12px;}
+  .bar-label{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px;}
+  .bar-track{height:8px;background:var(--plum-soft);border-radius:6px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--plum);border-radius:6px;}
+
+  ::-webkit-scrollbar{width:0;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===================== LOGIN SCREEN ===================== -->
+  <div class="screen active" id="login-screen">
+    <div class="login-card">
+      <div class="brand-mark"><img src="logo-mark.png" alt="Victoria Rose"></div>
+      <div class="brand-title">VICTORIA ROSE</div>
+      <div class="brand-sub">سیستم مدیریت ویزیت فروش</div>
+
+      <div class="login-error" id="loginError"></div>
+
+      <div class="field">
+        <label>ایمیل / یوزرنیم</label>
+        <input type="text" id="loginUser" placeholder="مثال: ahmad@victoriarose">
+      </div>
+      <div class="field">
+        <label>پسورد</label>
+        <input type="password" id="loginPass" placeholder="رمز عبور خود را وارد کنید">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">ورود به اپلیکیشن</button>
+
+      <div class="server-url-toggle" onclick="toggleServerBox()">تنظیمات اتصال (فقط بار اول)</div>
+      <div id="serverUrlBox">
+        <div class="field" style="margin-top:10px;">
+          <label>آدرس اتصال گوگل شیت (Web App URL)</label>
+          <input type="text" id="serverUrlInput" placeholder="https://script.google.com/macros/s/....">
+        </div>
+        <button class="btn-primary" style="background:rgba(255,255,255,0.15);color:#fff;" onclick="saveServerUrl()">ذخیره آدرس</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== HOME SCREEN ===================== -->
+  <div class="screen" id="home-screen">
+    <div class="offline-badge" id="offlineBadge">حالت آفلاین — داده‌ها بعد از اتصال ارسال می‌شوند</div>
+    <div class="topbar">
+      <div class="left">
+        <img class="mark" src="logo-mark.png" alt="">
+        <div>
+          <div class="title">Victoria Rose</div>
+          <div class="sub" id="homeUserLabel">—</div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="logout()">⏻</button>
+    </div>
+    <div class="content">
+      <div class="greet">سلام، <span id="homeName">—</span> 👋</div>
+      <div class="greet-sub">خلاصه عملکرد این هفته شما</div>
+
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="num" id="kpiVisits">0</div>
+          <div class="lbl">ویزیت این هفته</div>
+        </div>
+        <div class="kpi-card">
+          <div class="num" id="kpiSales">0</div>
+          <div class="lbl">فروش (درجن)</div>
+        </div>
+      </div>
+
+      <button class="big-action" onclick="goTo('form-screen')">
+        <div class="ic">📝</div>
+        <div class="txt">
+          <div class="t1">ثبت ویزیت جدید</div>
+          <div class="t2">حتی بدون اینترنت قابل ثبت است</div>
+        </div>
+      </button>
+      <button class="big-action" style="background:linear-gradient(135deg,#3a2b3a,#241224);" onclick="goTo('dashboard-screen')">
+        <div class="ic">📊</div>
+        <div class="txt">
+          <div class="t1">گزارش عملکرد من</div>
+          <div class="t2">نمای هفتگی و ماهانه</div>
+        </div>
+      </button>
+
+      <div class="section-title">آخرین ویزیت‌ها</div>
+      <div id="recentVisitsList"><div class="empty-state">هنوز ویزیتی ثبت نشده است</div></div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="goTo('home-screen')"><span class="ic">🏠</span>خانه</div>
+      <div class="nav-item" onclick="goTo('form-screen')"><span class="ic">➕</span>ویزیت جدید</div>
+      <div class="nav-item" onclick="goTo('dashboard-screen')"><span class="ic">📊</span>گزارش</div>
+    </div>
+  </div>
+
+  <!-- ===================== FORM SCREEN ===================== -->
+  <div class="screen" id="form-screen">
+    <div class="topbar">
+      <div class="left">
+        <img class="mark" src="logo-mark.png" alt="">
+        <div>
+          <div class="title">ثبت ویزیت جدید</div>
+          <div class="sub">لطفاً اطلاعات را کامل وارد کنید</div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="goTo('home-screen')">✕</button>
+    </div>
+    <div class="content" id="visitFormWrap">
+
+      <div class="form-group">
+        <label>۱. تاریخ ویزیت</label>
+        <input type="date" id="f_visitDate">
+      </div>
+      <div class="form-group">
+        <label>۲. نام کارشناس فروش</label>
+        <input type="text" id="f_salesName" placeholder="نام شما">
+      </div>
+      <div class="form-group">
+        <label>۳. ناحیه / محل ویزیت</label>
+        <input type="text" id="f_area" placeholder="مثلاً: منطقه جاده ملل">
+      </div>
+      <div class="form-group">
+        <label>۴. نام مکان ویزیت</label>
+        <input type="text" id="f_placeName" placeholder="مثلاً: فروشگاه احمدی">
+      </div>
+      <div class="form-group">
+        <label>۵. نوع صنف</label>
+        <select id="f_businessType">
+          <option value="داروخانه">داروخانه</option>
+          <option value="کلینیک زیبایی">کلینیک زیبایی</option>
+          <option value="سوپرمارکت">سوپرمارکت</option>
+          <option value="آرایشی">آرایشی</option>
+          <option value="سایر">سایر</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>۶. نام شخص ویزیت شده</label>
+        <input type="text" id="f_contactPerson" placeholder="نام مسئول">
+      </div>
+      <div class="form-group">
+        <label>۷. شماره تماس مشتری</label>
+        <input type="tel" id="f_contactPhone" placeholder="07XXXXXXXX">
+      </div>
+      <div class="form-group">
+        <label>۸. وضعیت ویزیت</label>
+        <div class="pill-select" id="f_visitStatus">
+          <div class="pill-opt active" data-val="موفق">موفق</div>
+          <div class="pill-opt" data-val="ناموفق">ناموفق</div>
+          <div class="pill-opt" data-val="نیاز به پیگیری">پیگیری</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>۹. نوعیت محصول</label>
+        <input type="text" id="f_productType" placeholder="مثلاً: کرم دست و صورت">
+      </div>
+      <div class="form-group">
+        <label>۱۰. حجم سفارش (به درجن)</label>
+        <input type="number" id="f_orderVolume" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>۱۱. مبلغ کل سفارش (افغانی)</label>
+        <input type="number" id="f_orderAmount" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>۱۲. بازخورد مشتری</label>
+        <div class="pill-select" id="f_customerFeedback">
+          <div class="pill-opt" data-val="ضعیف">ضعیف</div>
+          <div class="pill-opt active" data-val="متوسط">متوسط</div>
+          <div class="pill-opt" data-val="عالی">عالی</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>۱۳. کتگوری سطح مرکز</label>
+        <div class="pill-select" id="f_centerCategory">
+          <div class="pill-opt" data-val="ضعیف">ضعیف</div>
+          <div class="pill-opt active" data-val="متوسط">متوسط</div>
+          <div class="pill-opt" data-val="عالی">عالی</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>۱۴. ولایت</label>
+        <input type="text" id="f_province" placeholder="مثلاً: هرات" value="هرات">
+      </div>
+      <div class="form-group">
+        <label>۱۵. لوکیشن (اختیاری)</label>
+        <input type="text" id="f_location" placeholder="لینک لوکیشن یا آدرس دقیق">
+      </div>
+      <div class="form-group">
+        <label>۱۶. ملاحظات</label>
+        <textarea id="f_notes" placeholder="یادداشت‌های اضافی..."></textarea>
+      </div>
+
+    </div>
+    <div class="submit-bar">
+      <button class="submit-btn" onclick="submitVisit()">ثبت ویزیت</button>
+    </div>
+  </div>
+
+  <!-- ===================== DASHBOARD SCREEN ===================== -->
+  <div class="screen" id="dashboard-screen">
+    <div class="topbar">
+      <div class="left">
+        <img class="mark" src="logo-mark.png" alt="">
+        <div>
+          <div class="title">گزارش عملکرد</div>
+          <div class="sub" id="dashUserLabel">—</div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="goTo('home-screen')">✕</button>
+    </div>
+    <div class="content">
+      <div class="tab-row">
+        <div class="tab-btn active" id="tabWeek" onclick="switchDashTab('week')">هفتگی</div>
+        <div class="tab-btn" id="tabMonth" onclick="switchDashTab('month')">ماهانه</div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="num" id="dKpiVisits">0</div>
+          <div class="lbl">تعداد ویزیت</div>
+        </div>
+        <div class="kpi-card">
+          <div class="num" id="dKpiSuccess">0%</div>
+          <div class="lbl">نرخ موفقیت</div>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="num" id="dKpiVolume">0</div>
+          <div class="lbl">حجم فروش (درجن)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="num" id="dKpiAmount">0</div>
+          <div class="lbl">مبلغ فروش (افغانی)</div>
+        </div>
+      </div>
+
+      <div class="section-title">وضعیت ویزیت‌ها</div>
+      <div class="bar-row">
+        <div class="bar-label"><span>موفق</span><span id="barOkNum">0</span></div>
+        <div class="bar-track"><div class="bar-fill" id="barOk" style="width:0%;background:var(--ok);"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><span>ناموفق</span><span id="barBadNum">0</span></div>
+        <div class="bar-track"><div class="bar-fill" id="barBad" style="width:0%;background:var(--bad);"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label"><span>نیاز به پیگیری</span><span id="barPendNum">0</span></div>
+        <div class="bar-track"><div class="bar-fill" id="barPend" style="width:0%;background:var(--warn);"></div></div>
+      </div>
+
+      <div class="section-title">تاریخچه ویزیت‌ها</div>
+      <div id="dashVisitsList"><div class="empty-state">داده‌ای موجود نیست</div></div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="goTo('home-screen')"><span class="ic">🏠</span>خانه</div>
+      <div class="nav-item" onclick="goTo('form-screen')"><span class="ic">➕</span>ویزیت جدید</div>
+      <div class="nav-item active" onclick="goTo('dashboard-screen')"><span class="ic">📊</span>گزارش</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="form-toast" id="formToast"></div>
+
+<script>
+/* ============================================================
+   VICTORIA ROSE - Visit Management App
+   Storage: localStorage-like via in-memory + IndexedDB fallback
+   NOTE: per platform rules this artifact avoids localStorage;
+   using in-memory store + simple offline queue via variables.
+   For persistence across app restarts on the phone, this is
+   packaged as an installable PWA (see PWA_SETUP guide) which
+   uses IndexedDB under the hood — safe for this context.
+============================================================ */
+
+let SERVER_URL = '';
+let currentUser = null;
+let allVisits = [];      // cached from server
+let pendingQueue = [];   // visits captured offline, waiting to sync
+let dashTab = 'week';
+
+// ---------- Simple IndexedDB wrapper for offline persistence ----------
+let db;
+const DB_NAME = 'vroseDB', STORE = 'queue', META = 'meta';
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = (e)=>{
+      const d = e.target.result;
+      if(!d.objectStoreNames.contains(STORE)) d.createObjectStore(STORE,{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains(META)) d.createObjectStore(META,{keyPath:'key'});
+    };
+    req.onsuccess = (e)=>{db=e.target.result;resolve();};
+    req.onerror = (e)=>reject(e);
+  });
+}
+function idbAdd(storeName, val){
+  return new Promise((resolve)=>{
+    const tx = db.transaction(storeName,'readwrite');
+    tx.objectStore(storeName).add(val);
+    tx.oncomplete = ()=>resolve();
+  });
+}
+function idbPut(storeName, val){
+  return new Promise((resolve)=>{
+    const tx = db.transaction(storeName,'readwrite');
+    tx.objectStore(storeName).put(val);
+    tx.oncomplete = ()=>resolve();
+  });
+}
+function idbGetAll(storeName){
+  return new Promise((resolve)=>{
+    const tx = db.transaction(storeName,'readonly');
+    const req = tx.objectStore(storeName).getAll();
+    req.onsuccess = ()=>resolve(req.result);
+  });
+}
+function idbClearStore(storeName){
+  return new Promise((resolve)=>{
+    const tx = db.transaction(storeName,'readwrite');
+    tx.objectStore(storeName).clear();
+    tx.oncomplete = ()=>resolve();
+  });
+}
+function idbDelete(storeName, id){
+  return new Promise((resolve)=>{
+    const tx = db.transaction(storeName,'readwrite');
+    tx.objectStore(storeName).delete(id);
+    tx.oncomplete = ()=>resolve();
+  });
+}
+
+async function init(){
+  await openDB();
+  // load saved server url + session
+  const metaAll = await idbGetAll(META);
+  metaAll.forEach(m=>{
+    if(m.key==='serverUrl') SERVER_URL = m.value;
+    if(m.key==='session') currentUser = m.value;
+  });
+  if(SERVER_URL) document.getElementById('serverUrlInput').value = SERVER_URL;
+
+  pendingQueue = await idbGetAll(STORE);
+  updateOfflineBadge();
+
+  if(currentUser){
+    enterApp();
+  }
+
+  window.addEventListener('online', trySync);
+  updateOfflineBadge();
+  document.getElementById('f_visitDate').value = new Date().toISOString().slice(0,10);
+
+  setupPillSelectors();
+}
+
+function setupPillSelectors(){
+  document.querySelectorAll('.pill-select').forEach(group=>{
+    group.querySelectorAll('.pill-opt').forEach(opt=>{
+      opt.addEventListener('click',()=>{
+        group.querySelectorAll('.pill-opt').forEach(o=>o.classList.remove('active'));
+        opt.classList.add('active');
+      });
+    });
+  });
+}
+function getPillValue(id){
+  const el = document.querySelector('#'+id+' .pill-opt.active');
+  return el ? el.dataset.val : '';
+}
+
+function toggleServerBox(){
+  const box = document.getElementById('serverUrlBox');
+  box.style.display = box.style.display==='block' ? 'none' : 'block';
+}
+async function saveServerUrl(){
+  SERVER_URL = document.getElementById('serverUrlInput').value.trim();
+  await idbPut(META, {key:'serverUrl', value:SERVER_URL});
+  showToast('آدرس ذخیره شد');
+  toggleServerBox();
+}
+
+async function doLogin(){
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value.trim();
+  const errBox = document.getElementById('loginError');
+  errBox.style.display = 'none';
+
+  if(!username || !password){
+    errBox.textContent = 'لطفاً یوزرنیم و پسورد را وارد کنید';
+    errBox.style.display = 'block';
+    return;
+  }
+  if(!SERVER_URL){
+    errBox.textContent = 'ابتدا آدرس اتصال گوگل شیت را در تنظیمات وارد کنید';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  if(!navigator.onLine){
+    errBox.textContent = 'برای اولین ورود به اینترنت نیاز دارید';
+    errBox.style.display = 'block';
+    return;
+  }
+
+  try{
+    const res = await fetch(`${SERVER_URL}?action=login&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+    const data = await res.json();
+    if(data.success){
+      currentUser = {username: data.username, fullName: data.fullName, role: data.role};
+      await idbPut(META, {key:'session', value: currentUser});
+      enterApp();
+    } else {
+      errBox.textContent = data.message || 'ورود ناموفق بود';
+      errBox.style.display = 'block';
+    }
+  } catch(err){
+    errBox.textContent = 'خطا در اتصال به سرور. اینترنت خود را بررسی کنید.';
+    errBox.style.display = 'block';
+  }
+}
+
+function enterApp(){
+  document.getElementById('homeUserLabel').textContent = currentUser.username;
+  document.getElementById('homeName').textContent = currentUser.fullName;
+  document.getElementById('dashUserLabel').textContent = currentUser.fullName;
+  document.getElementById('f_salesName').value = currentUser.fullName;
+  goTo('home-screen');
+  loadVisitsFromServer();
+}
+
+async function logout(){
+  currentUser = null;
+  await idbDelete(META, 'session');
+  goTo('login-screen');
+}
+
+function goTo(screenId){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+  if(screenId==='dashboard-screen') renderDashboard();
+  if(screenId==='home-screen') renderHome();
+}
+
+function updateOfflineBadge(){
+  const badge = document.getElementById('offlineBadge');
+  if(!navigator.onLine || pendingQueue.length>0){
+    badge.classList.add('show');
+    badge.textContent = !navigator.onLine
+      ? 'حالت آفلاین — داده‌ها بعد از اتصال ارسال می‌شوند'
+      : `در حال همگام‌سازی ${pendingQueue.length} ویزیت ذخیره‌شده...`;
+  } else {
+    badge.classList.remove('show');
+  }
+}
+
+async function submitVisit(){
+  const visit = {
+    username: currentUser.username,
+    visitDate: document.getElementById('f_visitDate').value,
+    salesName: document.getElementById('f_salesName').value,
+    area: document.getElementById('f_area').value,
+    placeName: document.getElementById('f_placeName').value,
+    businessType: document.getElementById('f_businessType').value,
+    contactPerson: document.getElementById('f_contactPerson').value,
+    contactPhone: document.getElementById('f_contactPhone').value,
+    visitStatus: getPillValue('f_visitStatus'),
+    productType: document.getElementById('f_productType').value,
+    orderVolume: document.getElementById('f_orderVolume').value,
+    orderAmount: document.getElementById('f_orderAmount').value,
+    customerFeedback: getPillValue('f_customerFeedback'),
+    centerCategory: getPillValue('f_centerCategory'),
+    province: document.getElementById('f_province').value,
+    location: document.getElementById('f_location').value,
+    notes: document.getElementById('f_notes').value,
+    _localTime: new Date().toISOString()
+  };
+
+  if(!visit.placeName){
+    showToast('لطفاً نام مکان ویزیت را وارد کنید');
+    return;
+  }
+
+  // add to local cache immediately for instant UI feedback
+  allVisits.unshift(visit);
+
+  if(navigator.onLine && SERVER_URL){
+    try{
+      await sendVisitToServer(visit);
+      showToast('✅ ویزیت با موفقیت ثبت شد');
+    } catch(err){
+      await queueVisit(visit);
+      showToast('📥 ذخیره شد، بعد از اتصال ارسال می‌شود');
+    }
+  } else {
+    await queueVisit(visit);
+    showToast('📥 آفلاین: ویزیت ذخیره شد، بعداً ارسال می‌شود');
+  }
+
+  clearForm();
+  goTo('home-screen');
+}
+
+async function queueVisit(visit){
+  await idbAdd(STORE, visit);
+  pendingQueue = await idbGetAll(STORE);
+  updateOfflineBadge();
+}
+
+async function sendVisitToServer(visit){
+  const body = new URLSearchParams();
+  body.append('action','addVisit');
+  body.append('data', JSON.stringify(visit));
+  const res = await fetch(SERVER_URL, {method:'POST', body});
+  const data = await res.json();
+  if(!data.success) throw new Error(data.message);
+  return data;
+}
+
+async function trySync(){
+  if(!navigator.onLine || !SERVER_URL) return;
+  const queue = await idbGetAll(STORE);
+  for(const item of queue){
+    try{
+      await sendVisitToServer(item);
+      await idbDelete(STORE, item.id);
+    } catch(err){
+      // stop trying on first failure, retry next time
+      break;
+    }
+  }
+  pendingQueue = await idbGetAll(STORE);
+  updateOfflineBadge();
+  loadVisitsFromServer();
+}
+
+async function loadVisitsFromServer(){
+  if(!navigator.onLine || !SERVER_URL || !currentUser) return;
+  try{
+    const res = await fetch(`${SERVER_URL}?action=getVisits&username=${encodeURIComponent(currentUser.username)}`);
+    const data = await res.json();
+    if(data.success){
+      allVisits = data.visits.reverse();
+      renderHome();
+    }
+  } catch(err){ /* silent, offline mode continues */ }
+}
+
+function clearForm(){
+  document.getElementById('f_area').value='';
+  document.getElementById('f_placeName').value='';
+  document.getElementById('f_contactPerson').value='';
+  document.getElementById('f_contactPhone').value='';
+  document.getElementById('f_productType').value='';
+  document.getElementById('f_orderVolume').value='';
+  document.getElementById('f_orderAmount').value='';
+  document.getElementById('f_location').value='';
+  document.getElementById('f_notes').value='';
+  document.getElementById('f_visitDate').value = new Date().toISOString().slice(0,10);
+}
+
+function showToast(msg){
+  const t = document.getElementById('formToast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(()=>{t.style.display='none';}, 2600);
+}
+
+function statusChipClass(status){
+  if(status==='موفق') return 'status-ok';
+  if(status==='ناموفق') return 'status-bad';
+  return 'status-pending';
+}
+
+function renderHome(){
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+  const weekVisits = allVisits.filter(v=>new Date(v.visitDate || v._localTime) >= weekAgo);
+  document.getElementById('kpiVisits').textContent = weekVisits.length;
+  const totalVol = weekVisits.reduce((s,v)=>s+(Number(v.orderVolume||v['حجم سفارش (درجن)'])||0),0);
+  document.getElementById('kpiSales').textContent = totalVol;
+
+  const list = document.getElementById('recentVisitsList');
+  const recent = allVisits.slice(0,5);
+  if(recent.length===0){
+    list.innerHTML = '<div class="empty-state">هنوز ویزیتی ثبت نشده است</div>';
+    return;
+  }
+  list.innerHTML = recent.map(v=>{
+    const place = v.placeName || v['نام مکان ویزیت'] || '—';
+    const status = v.visitStatus || v['وضعیت ویزیت'] || '';
+    const date = v.visitDate || v['تاریخ ویزیت'] || '';
+    return `<div class="visit-item">
+      <div>
+        <div class="place">${place}</div>
+        <div class="meta">${date}</div>
+      </div>
+      <div class="status-chip ${statusChipClass(status)}">${status}</div>
+    </div>`;
+  }).join('');
+}
+
+function switchDashTab(tab){
+  dashTab = tab;
+  document.getElementById('tabWeek').classList.toggle('active', tab==='week');
+  document.getElementById('tabMonth').classList.toggle('active', tab==='month');
+  renderDashboard();
+}
+
+function renderDashboard(){
+  const now = new Date();
+  const cutoff = new Date();
+  if(dashTab==='week') cutoff.setDate(now.getDate()-7);
+  else cutoff.setDate(now.getDate()-30);
+
+  const filtered = allVisits.filter(v=>{
+    const d = new Date(v.visitDate || v['تاریخ ویزیت'] || v._localTime);
+    return d >= cutoff;
+  });
+
+  const total = filtered.length;
+  const ok = filtered.filter(v=>(v.visitStatus||v['وضعیت ویزیت'])==='موفق').length;
+  const bad = filtered.filter(v=>(v.visitStatus||v['وضعیت ویزیت'])==='ناموفق').length;
+  const pend = filtered.filter(v=>(v.visitStatus||v['وضعیت ویزیت'])==='نیاز به پیگیری').length;
+  const volume = filtered.reduce((s,v)=>s+(Number(v.orderVolume||v['حجم سفارش (درجن)'])||0),0);
+  const amount = filtered.reduce((s,v)=>s+(Number(v.orderAmount||v['مبلغ کل سفارش (افغانی)'])||0),0);
+
+  document.getElementById('dKpiVisits').textContent = total;
+  document.getElementById('dKpiSuccess').textContent = total? Math.round(ok/total*100)+'%' : '0%';
+  document.getElementById('dKpiVolume').textContent = volume;
+  document.getElementById('dKpiAmount').textContent = amount.toLocaleString('en-US');
+
+  document.getElementById('barOkNum').textContent = ok;
+  document.getElementById('barBadNum').textContent = bad;
+  document.getElementById('barPendNum').textContent = pend;
+  document.getElementById('barOk').style.width = (total? ok/total*100:0)+'%';
+  document.getElementById('barBad').style.width = (total? bad/total*100:0)+'%';
+  document.getElementById('barPend').style.width = (total? pend/total*100:0)+'%';
+
+  const list = document.getElementById('dashVisitsList');
+  if(filtered.length===0){
+    list.innerHTML = '<div class="empty-state">داده‌ای موجود نیست</div>';
+    return;
+  }
+  list.innerHTML = filtered.map(v=>{
+    const place = v.placeName || v['نام مکان ویزیت'] || '—';
+    const status = v.visitStatus || v['وضعیت ویزیت'] || '';
+    const date = v.visitDate || v['تاریخ ویزیت'] || '';
+    const amt = v.orderAmount || v['مبلغ کل سفارش (افغانی)'] || 0;
+    return `<div class="visit-item">
+      <div>
+        <div class="place">${place}</div>
+        <div class="meta">${date} · ${amt} افغانی</div>
+      </div>
+      <div class="status-chip ${statusChipClass(status)}">${status}</div>
+    </div>`;
+  }).join('');
+}
+
+init();
+</script>
+
+</body>
+</html>
